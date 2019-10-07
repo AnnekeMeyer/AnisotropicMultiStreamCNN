@@ -35,6 +35,43 @@ python inference.py dual models/dual ProstateX/Case0 output.nrrd
 
 ## Training
 
+### Data structure
+Data structure goes here
+
+### Preprocessing
+TODO
+
+### Usage
+```
+usage: train.py [-h] [-m {SinglePlane,TriplePlane,DualPlane}]
+                [--data-dir DATA_DIR] [-lr LEARNING_RATE] [-bs BATCH_SIZE]
+                [-e EPOCHS] [--early-stop] [--lr-decay]
+                output
+
+Start training.
+
+positional arguments:
+  output                output directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m {SinglePlane,TriplePlane,DualPlane}, --model-type {SinglePlane,TriplePlane,DualPlane}
+  --data-dir DATA_DIR   Path to data directory.
+  -lr LEARNING_RATE, --learning-rate LEARNING_RATE
+                        learning rate (default 0)
+  -bs BATCH_SIZE, --batch-size BATCH_SIZE
+                        batch size (default 1)
+  -e EPOCHS, --epochs EPOCHS
+                        epoch count (default 100)
+  --early-stop          use early stop
+  --lr-decay            use learning rate decay
+```
+
+### Example
+```
+python traing.py --model-type dual --data-dir path/to/data output_dir
+```
+
 ## Hyperparameter optimization
 
 The hyperparameter optimization (HPO) uses the HpBandSter package, which combined Hyperband with Bayesian optimization.

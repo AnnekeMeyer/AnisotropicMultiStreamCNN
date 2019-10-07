@@ -19,9 +19,9 @@ MODEL_FILENAME = "model.h5"
 
 
 class ModelType(Enum):
-  SinglePlane = "SinglePlane"
-  TriplePlane = "MultiPlane"
-  DualPlane = "DualPlane"
+  SinglePlane = "single"
+  TriplePlane = "triple"
+  DualPlane = "dual"
 
 
 # custom Callback that adds learning rate for each epoch to logfiles
@@ -159,8 +159,6 @@ def train(train_filenames, val_tra, val_cor, val_sag, val_GT, model_type, batch_
   print(train_id_list)
 
 
-  #print(train_id_list)
-
   training_generator = DataGenerator(train_id_list, **params)
 
   print('train_id_list_length:', len(train_id_list))
@@ -169,20 +167,38 @@ def train(train_filenames, val_tra, val_cor, val_sag, val_GT, model_type, batch_
                                 validation_data=val_data,
                                 use_multiprocessing=True, epochs=epochs, callbacks=cb,
                                 workers=4, initial_epoch= initial_epoch)
-  # print(history.history.keys())
   model.save(model_file[:-3]+'_final.h5')
 
 
-  #tf.reset_default_graph()
-  # TODO find out how to retrieve best validation score from the history
   return history
+
+CONFIG = {
+  "single": {
+    "batch_normalization": False,
+    "dropout_rate": 0.6,
+    "upsampling_mode": "upsampling",
+    "learning_rate": 0.0001282905140575413
+  },
+  "dual": {
+    "batch_normalization": False,
+    "dropout_rate": 0.2,
+    "upsampling_mode": "transpose_conv",
+    "learning_rate": 0.00013147776478275702
+  },
+  "triple": {
+    "batch_normalization": True,
+    "dropout_rate": 0.2,
+    "upsampling_mode": "transpose_conv",
+    "learning_rate": 0.00029905363591026105
+  }
+}
 
 
 def parse_args():
   import argparse
   parser = argparse.ArgumentParser(description="Start training.")
   parser.add_argument('-m', '--model-type', choices=ModelType._member_names_, default=ModelType.TriplePlane.name)
-  parser.add_argument('-i', '--input-dir', help="path to input directory with image data")
+  parser.add_argument('--data-dir', help="Path to data directory.")
   parser.add_argument('-lr', '--learning-rate', type=float, default=5e-5, help="learning rate (default %(default)d)")
   parser.add_argument('-bs', '--batch-size', type=int, default=1, help="batch size (default %(default)d)")
   parser.add_argument('-e', '--epochs', type=int, default=100, help="epoch count (default %(default)d)")
@@ -194,10 +210,16 @@ def parse_args():
 
 def run_training(args):
   make_dirs(args.output)
-  # get data
   csv_file = os.path.join(args.output, CSV_FILENAME)
   model_file = os.path.join(args.output, MODEL_FILENAME)
 
+  config = CONFIG[args.model_type]
+
+  # TODO NEEDED: train_filenames, val_imgs_tra, val_imgs_cor, val_imgs_sag, val_GT
+  train(train_filenames, val_imgs_tra, val_imgs_cor, val_imgs_sag, val_GT, args.model_type,
+        batch_size=args.batch_size, epochs=args.epochs, csv_file=csv_file, model_file=model_file,
+        lr=args.learning_rate, early_stop=args.early_stop, data_dir=args.data_dir, dropout_rate=config["dropout_rate"],
+        batch_normalization=config["batch_normalization"], upsampling_mode=config["upsampling_mode"])
 
 if __name__ == "__main__":
   args = parse_args()
