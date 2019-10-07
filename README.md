@@ -27,7 +27,7 @@ optional arguments:
 
 ### Example
 ```
-python inference.py dual models/dual ProstateX/Case0 output.nrrd
+python inference.py dual models/dual data/ProstateX-0176 output.nrrd
 ```
 
 ## Training
