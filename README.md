@@ -9,6 +9,26 @@ pip install -r requirements.txt
 
 ## Inference
 
+### Usage
+```
+Usage: inference.py [-h] {single,dual,triple} model_dir image_dir output
+
+Inference.
+
+positional arguments:
+  {single,dual,triple}  Path to the config space definition.
+  model_dir             Model directory.
+  image_dir             Input image directory.
+  output                Output filename
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
+
+### Example
+```
+python inference.py dual models/dual ProstateX/Case0 output.nrrd
+```
 
 ## Training
 
