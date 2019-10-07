@@ -26,7 +26,7 @@ def preprocess(inputImgDir, modelType=train.ModelType.TriplePlane):
   arr_sag[0, :, :, :, 0] = sitk.GetArrayFromImage(ROI_sag)
 
   arr_cor = np.zeros([1, 4 * volumeSize_slices, volumeSize_slices, 4 * volumeSize_slices, 1])
-  arr_cor[0, :, :, :, 0] = sitk.GetArrayFromImage(ROI_cor)  
+  arr_cor[0, :, :, :, 0] = sitk.GetArrayFromImage(ROI_cor)
 
   if modelType == train.ModelType.SinglePlane:
     return [arr_tra]
