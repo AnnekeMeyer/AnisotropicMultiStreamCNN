@@ -200,7 +200,7 @@ if __name__ == "__main__":
   print(config)
   res = worker.compute(config_id=(0, 0, int(fold_id)), config=config, budget=270, working_directory='.',
                        nr_augmentations=10, nr_elastic_deformations=nr_elastic_deformations, fold_id=fold_id,
-                       modelType=train.ModelType.MultiPlane)
+                       modelType=train.ModelType.TriplePlane)
   print(res)
 
 

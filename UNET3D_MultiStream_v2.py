@@ -162,7 +162,7 @@ def get_net_dualPlane(filterFactor=1, dropout_rate=0, batch_normalization=False,
   return model
 
 
-def get_net_multiPlane(filterFactor=1, dropout_rate=0, batch_normalization=False, upsampling_mode="transpose_conv",
+def get_net_triplePlane(filterFactor=1, dropout_rate=0, batch_normalization=False, upsampling_mode="transpose_conv",
                         volumeSize_slices=38):
   analysis_tra = analysis_path(2, (volumeSize_slices, 4*volumeSize_slices, 4*volumeSize_slices), batch_normalization,
                                up_strides=(2, 1, 1), pool_size=(1, 2, 2), upsampling_mode=upsampling_mode, filterFactor= filterFactor)

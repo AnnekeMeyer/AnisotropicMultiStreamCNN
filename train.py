@@ -20,7 +20,7 @@ MODEL_FILENAME = "model.h5"
 
 class ModelType(Enum):
   SinglePlane = "SinglePlane"
-  MultiPlane = "MultiPlane"
+  TriplePlane = "MultiPlane"
   DualPlane = "DualPlane"
 
 
@@ -53,9 +53,9 @@ def get_model(model_type, lr, dropout_rate=0, batch_normalization=False, upsampl
   if model_type == ModelType.SinglePlane:
     m = UNET3D_MultiStream_v2.get_net_singlePlane(dropout_rate=dropout_rate, batch_normalization=batch_normalization,
                                                   upsampling_mode=upsampling_mode, volumeSize_slices= volumeSize_slices)
-  elif model_type == ModelType.MultiPlane:
-    m = UNET3D_MultiStream_v2.get_net_multiPlane(dropout_rate=dropout_rate, batch_normalization=batch_normalization,
-                                                 upsampling_mode=upsampling_mode, volumeSize_slices=volumeSize_slices)
+  elif model_type == ModelType.TriplePlane:
+    m = UNET3D_MultiStream_v2.get_net_triplePlane(dropout_rate=dropout_rate, batch_normalization=batch_normalization,
+                                                  upsampling_mode=upsampling_mode, volumeSize_slices=volumeSize_slices)
   elif model_type == ModelType.DualPlane:
     m = UNET3D_MultiStream_v2.get_net_dualPlane(dropout_rate=dropout_rate, batch_normalization=batch_normalization,
                                                 upsampling_mode=upsampling_mode, volumeSize_slices=volumeSize_slices)
@@ -123,7 +123,7 @@ def train(train_filenames, val_tra, val_cor, val_sag, val_GT, model_type, batch_
   elif model_type == ModelType.DualPlane:
     val_data = [[val_tra, val_sag], val_GT]
     n_planes = 2
-  elif model_type == ModelType.MultiPlane:
+  elif model_type == ModelType.TriplePlane:
     val_data = [[val_tra, val_cor, val_sag], val_GT]
     n_planes = 3
 
@@ -181,7 +181,7 @@ def train(train_filenames, val_tra, val_cor, val_sag, val_GT, model_type, batch_
 def parse_args():
   import argparse
   parser = argparse.ArgumentParser(description="Start training.")
-  parser.add_argument('-m', '--model-type', choices=ModelType._member_names_, default=ModelType.MultiPlane.name)
+  parser.add_argument('-m', '--model-type', choices=ModelType._member_names_, default=ModelType.TriplePlane.name)
   parser.add_argument('-i', '--input-dir', help="path to input directory with image data")
   parser.add_argument('-lr', '--learning-rate', type=float, default=5e-5, help="learning rate (default %(default)d)")
   parser.add_argument('-bs', '--batch-size', type=int, default=1, help="batch size (default %(default)d)")
