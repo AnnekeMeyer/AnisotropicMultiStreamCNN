@@ -3,7 +3,7 @@
 
 Source code of the paper "Anisotropic 3D Multi-Stream CNN for Accurate Prostate Segmentation from Multi-Planar MRI".
 
-![Network](NETWORK.png)
+![Network](Network.PNG)
 
 ## Setup
 ```
