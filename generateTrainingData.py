@@ -16,16 +16,17 @@ def cropAndResampleVolume(inputDir):
 
     files = os.listdir(inputDir)
     for file in files:
-        if os.path.isfile(inputDir + file):
+        filename = os.path.join(inputDir, file)
+        if os.path.isfile(filename):
             if 'tra.nrrd' in file:
                 print(file)
-                img_tra = sitk.ReadImage(inputDir + file)
+                img_tra = sitk.ReadImage(filename)
             if 'cor.nrrd' in file:
                 print(file)
-                img_cor = sitk.ReadImage(inputDir + file)
+                img_cor = sitk.ReadImage(filename)
             if 'sag.nrrd' in file:
                 print(file)
-                img_sag = sitk.ReadImage(inputDir + file)
+                img_sag = sitk.ReadImage(filename)
 
     #  normalize image to values between 0 and 1 while cropping 1st and 99th percentile
     img_tra, img_cor, img_sag = utils.normalizeIntensitiesPercentile(img_tra, img_cor, img_sag)
