@@ -4,29 +4,29 @@ import os
 import train
 import numpy as np
 import SimpleITK as sitk
+from generateTrainingData import cropAndResampleVolume
 
 MODEL_FILENAME = "model.h5"
 volumeSize_slices = 46
 
 
 def preprocess(inputImgDir, modelType=train.ModelType.TriplePlane):
-  img_tra = sitk.ReadImage(os.path.join(inputImgDir, 'roi_tra.nrrd'))
-  inPlaneSize = img_tra.GetSize()[0]
 
-  a = int((inPlaneSize - 4 * volumeSize_slices) / 2)
-  b = int((inPlaneSize / 4 - volumeSize_slices) / 2)
+
+  ROI_tra, ROI_cor, ROI_sag = cropAndResampleVolume(inputImgDir)
+
+  volumeSize_slices = ROI_tra.GetSize()[2]
+
 
   arr_tra = np.zeros([1, volumeSize_slices, 4 * volumeSize_slices, 4 * volumeSize_slices, 1])
   print(arr_tra.shape)
-  arr_tra[0, :, :, :, 0] = sitk.GetArrayFromImage(img_tra)  # [b:-b, a:-a, a:-a]
+  arr_tra[0, :, :, :, 0] = sitk.GetArrayFromImage(ROI_tra)
 
-  img_sag = sitk.ReadImage(os.path.join(inputImgDir, 'roi_sag.nrrd'))
   arr_sag = np.zeros([1, 4 * volumeSize_slices, 4 * volumeSize_slices, volumeSize_slices, 1])
-  arr_sag[0, :, :, :, 0] = sitk.GetArrayFromImage(img_sag)  # [ a:-a, a:-a, b:-b]
+  arr_sag[0, :, :, :, 0] = sitk.GetArrayFromImage(ROI_sag)
 
-  img_cor = sitk.ReadImage(os.path.join(inputImgDir, 'roi_cor.nrrd'))
   arr_cor = np.zeros([1, 4 * volumeSize_slices, volumeSize_slices, 4 * volumeSize_slices, 1])
-  arr_cor[0, :, :, :, 0] = sitk.GetArrayFromImage(img_cor)  # [a:-a, b:-b, a:-a]
+  arr_cor[0, :, :, :, 0] = sitk.GetArrayFromImage(ROI_cor)  
 
   if modelType == train.ModelType.SinglePlane:
     return [arr_tra]

@@ -11,6 +11,56 @@ ISO_ROI_SIZE = [184, 184, 184]
 SLICE_THICKNESS_FACTOR = 4
 NR_AUGMENTATIONS = 5
 
+def cropAndResampleVolume(inputDir):
+
+
+    files = os.listdir(inputDir)
+    for file in files:
+        if os.path.isfile(inputDir + file):
+            if 'tra.nrrd' in file:
+                print(file)
+                img_tra = sitk.ReadImage(inputDir + file)
+            if 'cor.nrrd' in file:
+                print(file)
+                img_cor = sitk.ReadImage(inputDir + file)
+            if 'sag.nrrd' in file:
+                print(file)
+                img_sag = sitk.ReadImage(inputDir + file)
+
+    #  normalize image to values between 0 and 1 while cropping 1st and 99th percentile
+    img_tra, img_cor, img_sag = utils.normalizeIntensitiesPercentile(img_tra, img_cor, img_sag)
+
+    # choose a target coordinate system (in this case: upsampled transversal)
+    tra_upsampled = utils.resampleImage(img_tra, [0.6, 0.6, 0.6], sitk.sitkLinear, 0)
+
+
+    tra_upsampled = utils.changeSizeWithPadding(tra_upsampled, ISO_ROI_SIZE)
+
+    # compute intersecting ROI of the three orthogonal images in that target coordinate system
+    region_tra, region_cor, region_sag, start, size = preprocessing.getCroppedIsotropicImgs('out/', [0.6, 0.6, 0.6],
+                                                                                            ISO_ROI_SIZE[0],
+                                                                                            SLICE_THICKNESS_FACTOR,
+                                                                                            img_tra, img_cor,
+                                                                                            img_sag)
+
+    #  extract ROI from that target coordinate system
+    roi_upsampled = sitk.RegionOfInterest(tra_upsampled, [size[0], size[1], size[2]],
+                                          [start[0], start[1], start[2]])
+
+    #  extract anisotropic ROI from original tra input image
+    roi_tra_target = utils.resampleImage(roi_upsampled, [0.6, 0.6, 2.4], sitk.sitkLinear, 0)
+    ROI_tra = utils.resampleToReference(img_tra, roi_tra_target, sitk.sitkLinear, 0)
+
+    # similarly, extract ansisotropic ROI for cor input image
+    roi_cor_target = utils.resampleImage(roi_upsampled, [0.6, 2.4, 0.6], sitk.sitkLinear, 0)
+    ROI_cor = utils.resampleToReference(img_cor, roi_cor_target, sitk.sitkLinear, 0)
+
+    # similarly, extract ansisotropic ROI for sag input image
+    roi_sag_target = utils.resampleImage(roi_upsampled, [2.4, 0.6, 0.6], sitk.sitkLinear, 0)
+    ROI_sag = utils.resampleToReference(img_sag, roi_sag_target, sitk.sitkLinear, 0)
+
+    return ROI_tra, ROI_cor, ROI_sag
+
 
 def cropAndResampleVolumes(inputDir, augmentation = False):
 
