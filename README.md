@@ -1,6 +1,9 @@
 # AnisotropicMultiStreamCNN
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Source code of the paper "Anisotropic 3D Multi-Stream CNN for Accurate Prostate Segmentation from Multi-Planar MRI".
+
+![Network](NETWORK.png)
 
 ## Setup
 ```
