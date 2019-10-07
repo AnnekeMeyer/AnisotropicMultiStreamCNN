@@ -1,0 +1,9 @@
+hpbandster
+keras
+SimpleITK
+numpy
+pandas
+scipy
+tqdm
+pytest
+bokeh==1.0.4
