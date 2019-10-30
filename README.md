@@ -37,11 +37,6 @@ python inference.py dual models/dual data/ProstateX-0176 output.nrrd
 
 ## Training
 
-### Data structure
-Data structure goes here
-
-### Preprocessing
-TODO
 
 ### Usage
 ```
