@@ -7,3 +7,4 @@ scipy
 tqdm
 pytest
 bokeh==1.0.4
+scikit-learn
