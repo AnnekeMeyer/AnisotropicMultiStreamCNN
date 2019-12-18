@@ -36,7 +36,7 @@ def add_dropout(input, dropout_rate):
 
 
 def conv3d(input, filters, batch_normalization=False):
-  print(filters)
+
   out = Conv3D(int(filters), (3, 3, 3), padding="same", use_bias=not batch_normalization)(input)
   if batch_normalization:
     out = BatchNormalization()(out)
@@ -69,7 +69,6 @@ def analysis_path(levels, input_shape, batch_normalization=False, up_strides=(2,
   out = inputs
   for i in range(levels):
     filters = int(filterFactor * base_filters * 2 ** i)
-    print('Analysis Filters: ', filters)
     out = conv3d(out, filters, batch_normalization)
     out = conv3d(out, 2 * filters, batch_normalization)
     ret["up%d" % (i + 1)] = upsample(out, upsampling_mode, 2*filters, batch_normalization, repeat=2-i, strides=up_strides)

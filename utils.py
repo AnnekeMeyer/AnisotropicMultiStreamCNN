@@ -101,8 +101,7 @@ def normalizeIntensitiesPercentile(*imgs):
 
         upperPerc = np.percentile(array, 99) #98
         lowerPerc = np.percentile(array, 1) #2
-        print('percentiles', upperPerc, lowerPerc)
-
+        
         castImageFilter = sitk.CastImageFilter()
         castImageFilter.SetOutputPixelType(sitk.sitkFloat32)
         normalizationFilter = sitk.IntensityWindowingImageFilter()
