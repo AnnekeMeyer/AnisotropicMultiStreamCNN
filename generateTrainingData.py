@@ -63,9 +63,8 @@ def cropAndResampleVolume(inputDir):
     return ROI_tra, ROI_cor, ROI_sag
 
 
-def cropAndResampleVolumes(inputDir, augmentation = False):
+def cropAndResampleVolumes(inputDir_imgs, input_dir_GT, output_dir):
 
-    # TODO: augmentation: resample upsampled ROI to transformed upsampled ROI
 
     #  ---------- principle of preprocessing (obtaining ROI) ----------------
     # 1. choose a target coordinate system (in this case: upsampled transversal)
@@ -73,7 +72,7 @@ def cropAndResampleVolumes(inputDir, augmentation = False):
     # 3. extract ROI from that isotropic target coordinate system
     # 4. for each orthogonal image: resample ROI to the orthogonal-image-specific anisotropic resolution and map the original orthogonal image to that resampled ROI
 
-    cases = os.listdir(inputDir+'/GT-whole prostate HR')
+    cases = os.listdir(input_dir_GT)
     img_index = 0
 
     for case in cases:
@@ -81,10 +80,9 @@ def cropAndResampleVolumes(inputDir, augmentation = False):
 
         # create output directory names
         print(case)
-        img_dir = inputDir + 'data-original/' + case + '/'
-        GT_dir = inputDir + 'GT-whole prostate HR/' + case + '/'
-        outDir = inputDir + 'preprocessed/' + case + '/'
-        #outDir = inputDir + 'preprocessed/' + case + '/'
+        img_dir = inputDir_imgs + '/'
+        GT_dir = input_dir_GT + '/case' + '/'
+        outDir = output_dir + '/preprocessed_imgs/' + case + '/'
 
 
         # read all necessary input volumes
@@ -103,13 +101,8 @@ def cropAndResampleVolumes(inputDir, augmentation = False):
                     print(file)
                     img_sag = sitk.ReadImage(img_dir + file)
 
-        ## copy necessary smooth label into current directory
-        # if not os.path.isfile(GT_dir + 'prostate_smooth-label.nrrd'):
-        #     print(GT_dir)
-        #     os.mkdir(GT_dir)
-        #     shutil.copyfile(img_dir + '/prostate_smooth-label.nrrd', GT_dir + 'prostate_smooth-label.nrrd')
 
-        GT = sitk.ReadImage(GT_dir + 'prostate_smooth-label.nrrd')
+        GT = sitk.ReadImage(GT_dir + '/prostate_smooth-label.nrrd')
 
         #  normalize image to values between 0 and 1 while cropping 1st and 99th percentile
         img_tra, img_cor, img_sag = utils.normalizeIntensitiesPercentile(img_tra, img_cor, img_sag)
@@ -117,11 +110,6 @@ def cropAndResampleVolumes(inputDir, augmentation = False):
         # choose a target coordinate system (in this case: upsampled transversal)
         tra_upsampled = utils.resampleImage(img_tra, [0.6, 0.6, 0.6], sitk.sitkLinear, 0)
 
-        # if augmentation:
-        #     ## ROI size is increased to prevent black borders after transformation for images
-        #     iso_roi_size = [168,168,168]
-        # else:
-        #     iso_roi_size = ISO_ROI_SIZE
 
         tra_upsampled = utils.changeSizeWithPadding(tra_upsampled, ISO_ROI_SIZE)
 
@@ -151,53 +139,15 @@ def cropAndResampleVolumes(inputDir, augmentation = False):
         # extract isotropic ROI for GT input image
         ROI_GT = utils.resampleToReference(GT, roi_upsampled, sitk.sitkNearestNeighbor, 0)
 
-        # generate name for original (non augmented) images
-        prefix = str(img_index)
-        prefix = prefix.rjust(3, "0")
-        name = '00'
-
         utils.makeDirectory(outDir)
 
-        if augmentation:
-            sitk.WriteImage(utils.cropImage(ROI_tra, [8,8,2], [8,8,2]), outDir + name + '_tra.nrrd')
-            sitk.WriteImage(utils.cropImage(ROI_cor, [8, 2, 8],[8, 2, 8]), outDir + name + '_cor.nrrd')
-            sitk.WriteImage(utils.cropImage(ROI_sag, [2, 8, 8], [2, 8, 8]), outDir + name + '_sag.nrrd')
-            sitk.WriteImage(utils.cropImage(ROI_GT, [8, 8, 8], [8, 8, 8]), outDir + name + '_GT.nrrd')
-
-        else:
-            sitk.WriteImage(ROI_tra, outDir + 'roi_tra.nrrd')
-            sitk.WriteImage(ROI_cor, outDir + 'roi_cor.nrrd')
-            sitk.WriteImage(ROI_sag, outDir + 'roi_sag.nrrd')
-            sitk.WriteImage(ROI_GT, outDir + 'roi_GT.nrrd')
+        # write preprocessed images
+        sitk.WriteImage(ROI_tra, outDir + 'roi_tra.nrrd')
+        sitk.WriteImage(ROI_cor, outDir + 'roi_cor.nrrd')
+        sitk.WriteImage(ROI_sag, outDir + 'roi_sag.nrrd')
+        sitk.WriteImage(ROI_GT, outDir + 'roi_GT.nrrd')
 
 
-        # in case augmentation should be applied, use transform isotropic ROI
-        # and afterwards resample it according to resolution of anisotropic volumes (tra, sag, cor)
-        if augmentation:
-
-            for i in range (1,NR_AUGMENTATIONS):
-
-                # transform upsampled ROI for augmentation
-                augm_tra, augm_sag, augm_cor, augm_GT = dataAugmentation.augmentImages(ROI_tra, ROI_sag, ROI_cor, ROI_GT)
-
-                # crop ROIS to original ROI size
-                augm_tra = utils.cropImage(augm_tra, [8,8,2], [8,8,2])
-                augm_cor = utils.cropImage(augm_cor, [8, 2, 8],[8, 2, 8])
-                augm_sag = utils.cropImage(augm_sag, [2, 8, 8], [2, 8, 8])
-                augm_GT = utils.cropImage(augm_GT, [8, 8, 8], [8, 8, 8])
-
-                # generate name from augmentation index
-                name = str(i)
-                name = name.rjust(2, "0")
-
-                # save images
-                #sitk.WriteImage(roi_tra_target, outDir + name + '_roi.nrrd')
-                sitk.WriteImage(augm_tra, outDir + name + '_tra.nrrd')
-                sitk.WriteImage(augm_cor, outDir + name + '_cor.nrrd')
-                sitk.WriteImage(augm_sag, outDir + name + '_sag.nrrd')
-                sitk.WriteImage(augm_GT, outDir + name + '_GT.nrrd')
-
-        img_index = img_index+1
 
 
 
@@ -251,47 +201,59 @@ def createArraysFromPatientList(list, input_directory):
     return img_arr_tra, img_arr_cor, img_arr_sag, gt_arr
 
 
-def createAnisotropicFoldArrays(data_directory, fold_dir, output_directory):
+def createAnisotropicFoldArrays(data_directory, fold_dir, output_directory, nr_folds = 4):
 
     # patients = os.listdir(input_directory)
-    for i in range(1, 5):
-        train_data = np.load(fold_dir+'/train_fold' + str(i) + '.npy')
-        train_list = train_data.tolist()
+    for i in range(1, nr_folds+1):
 
         val_data = np.load(fold_dir+'/test_fold' + str(i) + '.npy')
         val_list = val_data.tolist()
 
-        print(len(train_list), train_list)
 
-        img_arr_tra, img_arr_cor, img_arr_sag, gt_arr= createArraysFromPatientList(train_list, data_directory)
+        #img_arr_tra, img_arr_cor, img_arr_sag, gt_arr= createArraysFromPatientList(train_list, data_directory)
         val_img_arr_tra, val_img_arr_cor, val_img_arr_sag, val_gt_arr = createArraysFromPatientList(val_list, data_directory)
 
 
-        np.save(output_directory + 'fold' + str(i) + '_train_imgs_tra.npy', img_arr_tra)
+        #np.save(output_directory + 'fold' + str(i) + '_train_imgs_tra.npy', img_arr_tra)
         np.save(output_directory + 'fold' + str(i) + '_val_imgs_tra.npy', val_img_arr_tra)
 
-        np.save(output_directory + 'fold' + str(i) + '_train_imgs_cor.npy', img_arr_cor)
+        #np.save(output_directory + 'fold' + str(i) + '_train_imgs_cor.npy', img_arr_cor)
         np.save(output_directory + 'fold' + str(i) + '_val_imgs_cor.npy', val_img_arr_cor)
 
-        np.save(output_directory + 'fold' + str(i) + '_train_imgs_sag.npy', img_arr_sag)
+        #np.save(output_directory + 'fold' + str(i) + '_train_imgs_sag.npy', img_arr_sag)
         np.save(output_directory + 'fold' + str(i) + '_val_imgs_sag.npy', val_img_arr_sag)
 
-        np.save(output_directory + 'fold' + str(i) + '_train_GT.npy', gt_arr)
+        #np.save(output_directory + 'fold' + str(i) + '_train_GT.npy', gt_arr)
         np.save(output_directory + 'fold' + str(i) + '_val_GT.npy', val_gt_arr)
+
+
+def parse_args():
+  import argparse
+  parser = argparse.ArgumentParser(description="generate training data (preprocessing).")
+  parser.add_argument('input_dir_imgs',  type=str, help="Directory with original input images (cor, sag, tra).")
+  parser.add_argument('input_dir_GT', type=str, help="Directory with ground truth data.")
+  parser.add_argument('output_dir', type=str, help="Output directory for preprocessed images.")
+  parser.add_argument('nr_folds', type=int, help="Number of folds to be created.")
+  return parser.parse_args()
+
 
 
 if __name__ == '__main__':
 
-    #input_dir = '/data/anneke/prostate-data/Magdeburg/'
-    # ##input_dir = 'D:/prostate-data/test_augm/'
-    #cropAndResampleVolumes(input_dir, augmentation=False)
-    # manually split preprocessed images to train/test files
+    args = parse_args()
 
-    # input_dir = '/data/anneke/prostate-data/'
-    # utils.makeDirectory('Folds_MD')
-    # generateFolds(input_dir+ 'preprocessed/train/Magdeburg', 'Folds_MD', 4)
-    # #
-    output_dir = '/data/anneke/prostate-data/whole-prostate-arrays-ProstateX/'
-    utils.makeDirectory(output_dir)
-    # # # #
-    createAnisotropicFoldArrays('/data/anneke/prostate-data/ProstateX/preprocessed/train/','Folds_ProstateX', output_dir)
+    print('.... crop and resample volumes ....')
+    cropAndResampleVolumes(args.input_dir_imgs, args.input_dir_GT, args.output_dir, augmentation=False)
+
+    print('.... split images to folds ....')
+    utils.makeDirectory(os.path.join(args.output_dir, 'Folds'))
+    generateFolds(os.path.join(args.output_dir, 'preprocessed_imgs'),
+                  os.path.join(args.output_dir, 'Folds'), args.nr_folds)
+
+    print('.... generate fold arrays ....')
+    utils.makeDirectory(os.path.join(args.output_dir, 'arrays'))
+
+    # function for fold array generation is only used for validation arrays
+    createAnisotropicFoldArrays(os.path.join(args.output_dir, 'preprocessed_imgs'),
+                                os.path.join(args.output_dir, 'preprocessed_Folds'),
+                                os.path.join(args.output_dir, 'arrays'), nr_folds = args.nr_folds)

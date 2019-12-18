@@ -215,7 +215,7 @@ def run_training(args):
 
   config = CONFIG[args.model_type]
 
-  # TODO NEEDED: train_filenames, val_imgs_tra, val_imgs_cor, val_imgs_sag, val_GT
+
   train(train_filenames, val_imgs_tra, val_imgs_cor, val_imgs_sag, val_GT, args.model_type,
         batch_size=args.batch_size, epochs=args.epochs, csv_file=csv_file, model_file=model_file,
         lr=args.learning_rate, early_stop=args.early_stop, data_dir=args.data_dir, dropout_rate=config["dropout_rate"],

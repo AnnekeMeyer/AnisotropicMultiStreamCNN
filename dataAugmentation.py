@@ -141,7 +141,6 @@ def augmentImages(img_tra, img_sag, img_cor, img_GT):
     #smooth_Arr = [0, 0.2, 0, 0.3, 0, 0.4, 0, 0.5]
 
 
-    # TODO: numpy random.choice
 
     rand_vec = np.array(
         [rn.randint(0, 6), # theta for rotation along z-axis
