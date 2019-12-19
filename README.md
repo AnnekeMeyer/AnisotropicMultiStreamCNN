@@ -35,25 +35,102 @@ The inputs to the algorithm are the three orthogonal volumes, which should be re
 python inference.py dual models/dual data/ProstateX-0176 output.nrrd
 ```
 
-## Training
+## Preprocessing for Training 
+The preprocessing (cropping, intensity normalization) is done offline. The script generateTrainingData.py runs the preprocessing.
+We assume the following data structure for the preprocessing. Deviations from this structure need adaption in the sourcecode:
 
+- imgs
+	- Case1
+		- tra.nrrd
+		- sag.nrrd
+		- cor.nrrd
+	- Case2
+		- tra.nrrd
+		- sag.nrrd
+		- cor.nrrd
+	-Case3
+		- ....
+	- ...
+GT
+	- Case1
+		- prostate_smooth_label.nrrd
+	- Case2
+		- prostate_smooth_label.nrrd
+	- ...
+
+
+According to the available cases in the GT input directory, folds are generated. For each fold, the training files are saved as filenames in a npy array (only strings, no images). 
+The validation data is saved in image arrays, as it is not needed for further augmentation and can be simply fed into the training procedure.
+
+
+### Usage 
+```
+usage: generateTrainingData.py [-h]
+                               input_dir_imgs input_dir_GT output_dir nr_folds
+
+generate training data (preprocessing).
+
+positional arguments:
+  input_dir_imgs  Directory with original input images (cor, sag, tra).
+  input_dir_GT    Directory with ground truth data.
+  output_dir      Output directory for preprocessed images.
+  nr_folds        Number of folds to be created.
+
+optional arguments:
+  -h, --help      show this help message and exit
+```
+
+### Example
+```
+python generateTrainingData.py /data/data_multiplane/data_original /data/data_multiplane/data_GT/ /data/data_multiplane/ 4
+
+```
+
+### Augmentation
+Data augmentation is done online except for elastic deformation, as the processing time for elastic deformation is too high for online augmentation.
+Thus, the preprocessed images can be deformed elastically with the script elastic_deformation.py.
+
+```
+usage: elastic_deformation.py [-h] [-n NUM_ITERATIONS] [-i INPUT_DIR]
+                              [-cp CONTROL_POINTS] [-s SIGMA]
+
+Create additional images by elastic deformation.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -n NUM_ITERATIONS, --num-iterations NUM_ITERATIONS
+                        How many times each of input datasets should be
+                        deformed.
+  -i INPUT_DIR, --input-dir INPUT_DIR
+                        Input data directory.
+  -cp CONTROL_POINTS, --control-points CONTROL_POINTS
+  -s SIGMA, --sigma SIGMA
+```
+
+## Training
 
 ### Usage
 ```
-usage: train.py [-h] [-m {SinglePlane,TriplePlane,DualPlane}]
+usage: train.py [-h] [-m {single,dual,triple}]
                 [--data-dir DATA_DIR] [-lr LEARNING_RATE] [-bs BATCH_SIZE]
-                [-e EPOCHS] [--early-stop] [--lr-decay]
-                output
+                [-e EPOCHS] [--early-stop] [--lr-decay] 
+                data_dir train_list val_tra val_cor val_sag val_GT output
 
 Start training.
 
 positional arguments:
   output                output directory
+  train_list            Name of train list (npy array)
+  val_tra               Name of tra imgs validation array
+  val_cor               Name of cor imgs validation array
+  val_sag               Name of sag imgs validation array
+  val_GT                Name of GT validation array
+  output                output directory
+
 
 optional arguments:
   -h, --help            show this help message and exit
-  -m {SinglePlane,TriplePlane,DualPlane}, --model-type {SinglePlane,TriplePlane,DualPlane}
-  --data-dir DATA_DIR   Path to data directory.
+  -m {single,dual,triple}, --model-type {single,dual,triple} (default triple)
   -lr LEARNING_RATE, --learning-rate LEARNING_RATE
                         learning rate (default 0)
   -bs BATCH_SIZE, --batch-size BATCH_SIZE
@@ -66,7 +143,8 @@ optional arguments:
 
 ### Example
 ```
-python traing.py --model-type dual --data-dir path/to/data output_dir
+python train.py '/data/data_multiplane' 'train_fold1.npy' 'fold1_val_imgs_tra.npy' 'fold1_val_imgs_cor.npy' 'fold1_val_imgs_sag.npy' 'fold1_val_GT.npy'  --model-type triple output_dir
+
 ```
 
 ## Hyperparameter optimization
