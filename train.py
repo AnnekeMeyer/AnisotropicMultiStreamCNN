@@ -1,5 +1,4 @@
 __author__ = 'gchlebus'
-
 from keras.optimizers import Adam
 from keras.callbacks import CSVLogger
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping, Callback, TensorBoard
@@ -13,6 +12,10 @@ from data_generation import DataGenerator
 from keras.utils import plot_model
 import csv
 import tensorflow as tf
+
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 CSV_FILENAME = "log.csv"
 MODEL_FILENAME = "model.h5"
@@ -73,7 +76,7 @@ def get_model(model_type, lr, dropout_rate=0, batch_normalization=False, upsampl
 
 def train(train_filenames, val_tra, val_cor, val_sag, val_GT, model_type, batch_size, epochs,
           csv_file, model_file, lr=5e-5, lr_scheduling=False, early_stop=False, initial_epoch=0, nr_augmentations =
-          1, nr_elastic_deformations = 0, data_dir='/data/anneke/prostate-data/preprocessed/train/',
+          1, nr_elastic_deformations = 0, data_dir='',
           tensorboard_log_name = 'tensorboard/', dropout_rate=0, batch_normalization=False,
           upsampling_mode="transpose_conv", volumeSize_slices=38):
 
@@ -114,6 +117,19 @@ def train(train_filenames, val_tra, val_cor, val_sag, val_GT, model_type, batch_
     cb.append(LRDecay)
 
   print('Callbacks: ', cb)
+
+  # crop validation arrays to fit training data (which is cropped after augmentation)
+  # get image size
+  inPlaneSize = val_tra.shape[-2]
+
+  a = int((inPlaneSize - 4 * volumeSize_slices) / 2)
+  b = int((inPlaneSize / 4 - volumeSize_slices) / 2)
+  val_tra = val_tra[:, b:-b, a:-a, a:-a, :]
+  val_cor = val_cor[:, a:-a, b:-b, a:-a, :]
+  val_sag = val_sag[:, a:-a, a:-a, b:-b, :]
+  val_GT = val_GT[:, a:-a, a:-a, a:-a, :]
+
+  print('VAL GT SHAPE:', val_GT.shape)
 
 
   # create validation data list according to number of input planes
@@ -197,8 +213,14 @@ CONFIG = {
 def parse_args():
   import argparse
   parser = argparse.ArgumentParser(description="Start training.")
-  parser.add_argument('-m', '--model-type', choices=ModelType._member_names_, default=ModelType.TriplePlane.name)
-  parser.add_argument('--data-dir', help="Path to data directory.")
+  parser.add_argument('data_dir', help="Path to data directory.")
+  parser.add_argument('train_list', help="Name of train list (npy array)")
+  parser.add_argument('val_tra', help="Name of tra imgs validation array")
+  parser.add_argument('val_cor', help="Name of cor imgs validation array")
+  parser.add_argument('val_sag', help="Name of sag imgs validation array")
+  parser.add_argument('val_GT', help="Name of GT validation array")
+  #parser.add_argument('-m', '--model-type', choices=ModelType._member_names_, default=ModelType.TriplePlane.name)
+  parser.add_argument('-m', '--model-type', choices=['single', 'dual', 'triple'], default='triple')
   parser.add_argument('-lr', '--learning-rate', type=float, default=5e-5, help="learning rate (default %(default)d)")
   parser.add_argument('-bs', '--batch-size', type=int, default=1, help="batch size (default %(default)d)")
   parser.add_argument('-e', '--epochs', type=int, default=100, help="epoch count (default %(default)d)")
@@ -213,12 +235,26 @@ def run_training(args):
   csv_file = os.path.join(args.output, CSV_FILENAME)
   model_file = os.path.join(args.output, MODEL_FILENAME)
 
+
+  print('Model Type: ',  ModelType(args.model_type))
   config = CONFIG[args.model_type]
 
+  # load files for training
 
-  train(train_filenames, val_imgs_tra, val_imgs_cor, val_imgs_sag, val_GT, args.model_type,
+  train_filenames = np.load(os.path.join(args.data_dir, 'folds', args.train_list))
+  val_imgs_tra = np.load(os.path.join(args.data_dir, 'arrays',args.val_tra))
+  val_imgs_cor = np.load(os.path.join(args.data_dir, 'arrays',args.val_cor))
+  val_imgs_sag = np.load(os.path.join(args.data_dir, 'arrays',args.val_sag))
+  val_GT = np.load(os.path.join(args.data_dir, 'arrays',args.val_GT))
+
+
+
+
+  data_dir = os.path.join(args.data_dir, 'preprocessed_imgs')
+
+  train(train_filenames, val_imgs_tra, val_imgs_cor, val_imgs_sag, val_GT, ModelType(args.model_type),
         batch_size=args.batch_size, epochs=args.epochs, csv_file=csv_file, model_file=model_file,
-        lr=args.learning_rate, early_stop=args.early_stop, data_dir=args.data_dir, dropout_rate=config["dropout_rate"],
+        lr=args.learning_rate, early_stop=args.early_stop, data_dir=data_dir, dropout_rate=config["dropout_rate"],
         batch_normalization=config["batch_normalization"], upsampling_mode=config["upsampling_mode"])
 
 if __name__ == "__main__":

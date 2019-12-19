@@ -13,8 +13,8 @@ CSV_FILE = "log.csv"
 
 class KerasWorker(Worker):
   def __init__(self, run_id, out_directory, nameserver=None, nameserver_port=None, logger=None, host=None, id=None,
-               timeout=None, array_dir='/data/anneke/prostate-data/whole-prostate-arrays/',
-               data_dir='/data/anneke/prostate-data/preprocessed/train/',
+               timeout=None, array_dir='',
+               data_dir='',
                volumeSize_slices=36):
     Worker.__init__(self, run_id, nameserver, nameserver_port, logger, host, id, timeout)
     self.__out_directory = out_directory
@@ -65,7 +65,6 @@ class KerasWorker(Worker):
 
     train_filenames = np.concatenate([train_filenames1,train_filenames2], axis=0)
 
-    #train_filenames = np.load('Folds_ProstateX_noCropped/train_fold' + fold_id + '.npy')
 
     csv_file = os.path.join(model_directory, CSV_FILE)
     model_file = os.path.join(model_directory, MODEL_FILENAME[:-3]+'.h5')
@@ -118,98 +117,46 @@ class KerasWorker(Worker):
       return initial_learning_rate
 
 
-######todo tensorflow callbacks
-
-if __name__ == "__main__":
-
-  import sys
-
-  os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
-  fold_id = sys.argv[2]
-
-  nr_elastic_deformations = 4
-
-  import ConfigSpace as cs
-  from example_configspace import get_configspace
 
 
-
-  #### single #######
-  #
-  # worker = KerasWorker(run_id=str(4 + 1 * int(fold_id)), out_directory="train_single", volumeSize_slices=36,
-  #                       data_dir='data/preprocessed/train/',
-  #                      array_dir="/data/anneke/prostate-data/whole-prostate-arrays/")
-  # config_space = get_configspace()
-  #
-  # config = config_space.sample_configuration().get_dictionary()
-  #
-  # config = {
-  #   "batch_normalization": False,
-  #   "dropout_rate": 0.6,
-  #   "upsampling_mode": "upsampling",
-  #   "learning_rate": 0.0001282905140575413,
-  #   "early_stop": True
-  # }
-  #
-  # print(config)
-  # res = worker.compute(config_id=(0, 0, int(fold_id)), config=config, budget=270, working_directory='.',
-  #                      nr_augmentations=10, nr_elastic_deformations=nr_elastic_deformations, fold_id=fold_id,
-  #                      modelType=train.ModelType.SinglePlane)
-
-  ### dual #######
-  #
-  # worker = KerasWorker(run_id=str(1 * int(fold_id)), out_directory="train_dual", volumeSize_slices=36,
-  #                      data_dir='data/preprocessed/train/',
-  #                      array_dir="/data/anneke/prostate-data/whole-prostate-arrays/")
-  # config_space = get_configspace()
-  #
-  # config = config_space.sample_configuration().get_dictionary()
-  #
-  # config = {
-  #     "batch_normalization": False,
-  #     "dropout_rate": 0.2,
-  #     "upsampling_mode": "transpose_conv",
-  #     "learning_rate": 0.00013147776478275702,
-  #     "early_stop": True
-  # }
-  #
-  # print(config)
-  # res = worker.compute(config_id=(0, 0, int(fold_id)), config=config, budget=270, working_directory='.',
-  #                      nr_augmentations=10, nr_elastic_deformations=nr_elastic_deformations, fold_id=fold_id,
-  #                      modelType=train.ModelType.DualPlane)
-  # print(res)
-
-
-
-  #### multi #######
-
-  worker = KerasWorker(run_id=str(8 + int(fold_id)), out_directory="train_multi_4th", volumeSize_slices=36,
-                       data_dir='data/preprocessed/train/', array_dir = "/data/anneke/prostate-data/whole-prostate-arrays/")
-  config_space = get_configspace()
-
-  config = config_space.sample_configuration().get_dictionary()
-
-  config = {
-    "batch_normalization": True,
-    "dropout_rate": 0.2,
-    "upsampling_mode": "transpose_conv",
-    "learning_rate": 0.00029905363591026105,
-    "early_stop": True
-  }
-
-  print(config)
-  res = worker.compute(config_id=(0, 0, int(fold_id)), config=config, budget=270, working_directory='.',
-                       nr_augmentations=10, nr_elastic_deformations=nr_elastic_deformations, fold_id=fold_id,
-                       modelType=train.ModelType.TriplePlane)
-  print(res)
-
-
-
-
-
-  # print(res)
-
-
+#
+# if __name__ == "__main__":
+#
+#   import sys
+#
+#   os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
+#   fold_id = sys.argv[2]
+#
+#   nr_elastic_deformations = 4
+#
+#   import ConfigSpace as cs
+#   from example_configspace import get_configspace
+#
+#
+#
+#   ### single #######
+#
+#   worker = KerasWorker(run_id=str(4 + 1 * int(fold_id)), out_directory="train_single", volumeSize_slices=36,
+#                         data_dir='data/preprocessed_imgs/',
+#                        array_dir="data/arays/")
+#   config_space = get_configspace()
+#
+#   config = config_space.sample_configuration().get_dictionary()
+#
+#   config = {
+#     "batch_normalization": False,
+#     "dropout_rate": 0.6,
+#     "upsampling_mode": "upsampling",
+#     "learning_rate": 0.0001282905140575413,
+#     "early_stop": True
+#   }
+#
+#   print(config)
+#   res = worker.compute(config_id=(0, 0, int(fold_id)), config=config, budget=270, working_directory='.',
+#                        nr_augmentations=10, nr_elastic_deformations=nr_elastic_deformations, fold_id=fold_id,
+#                        modelType=train.ModelType.SinglePlane)
+#
+#
 
 
 

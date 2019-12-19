@@ -1,3 +1,5 @@
+__author__ = 'ameyer'
+
 import SimpleITK as sitk
 import numpy as np
 import os
@@ -80,10 +82,12 @@ def cropAndResampleVolumes(inputDir_imgs, input_dir_GT, output_dir):
 
         # create output directory names
         print(case)
-        img_dir = inputDir_imgs + '/'
-        GT_dir = input_dir_GT + '/case' + '/'
+        img_dir = inputDir_imgs + '/'+ case + '/'
+        GT_dir = input_dir_GT + '/' + case + '/'
         outDir = output_dir + '/preprocessed_imgs/' + case + '/'
 
+        if not os.path.exists(outDir):
+            os.mkdir(outDir)
 
         # read all necessary input volumes
         files = os.listdir(img_dir)
@@ -185,10 +189,10 @@ def createArraysFromPatientList(list, input_directory):
 
     for patient in list:
 
-        img_tra = sitk.ReadImage(input_directory + patient + '/roi_tra.nrrd')
-        img_cor = sitk.ReadImage(input_directory + patient + '/roi_cor.nrrd')
-        img_sag = sitk.ReadImage(input_directory + patient + '/roi_sag.nrrd')
-        gt = sitk.ReadImage(input_directory + patient + '/roi_GT.nrrd')
+        img_tra = sitk.ReadImage(input_directory + '/' + patient + '/roi_tra.nrrd')
+        img_cor = sitk.ReadImage(input_directory + '/' +patient + '/roi_cor.nrrd')
+        img_sag = sitk.ReadImage(input_directory + '/' +patient + '/roi_sag.nrrd')
+        gt = sitk.ReadImage(input_directory + '/' +patient + '/roi_GT.nrrd')
 
         print(patient)
 
@@ -215,16 +219,16 @@ def createAnisotropicFoldArrays(data_directory, fold_dir, output_directory, nr_f
 
 
         #np.save(output_directory + 'fold' + str(i) + '_train_imgs_tra.npy', img_arr_tra)
-        np.save(output_directory + 'fold' + str(i) + '_val_imgs_tra.npy', val_img_arr_tra)
+        np.save(output_directory + '/fold' + str(i) + '_val_imgs_tra.npy', val_img_arr_tra)
 
         #np.save(output_directory + 'fold' + str(i) + '_train_imgs_cor.npy', img_arr_cor)
-        np.save(output_directory + 'fold' + str(i) + '_val_imgs_cor.npy', val_img_arr_cor)
+        np.save(output_directory + '/fold' + str(i) + '_val_imgs_cor.npy', val_img_arr_cor)
 
         #np.save(output_directory + 'fold' + str(i) + '_train_imgs_sag.npy', img_arr_sag)
-        np.save(output_directory + 'fold' + str(i) + '_val_imgs_sag.npy', val_img_arr_sag)
+        np.save(output_directory + '/fold' + str(i) + '_val_imgs_sag.npy', val_img_arr_sag)
 
         #np.save(output_directory + 'fold' + str(i) + '_train_GT.npy', gt_arr)
-        np.save(output_directory + 'fold' + str(i) + '_val_GT.npy', val_gt_arr)
+        np.save(output_directory + '/fold' + str(i) + '_val_GT.npy', val_gt_arr)
 
 
 def parse_args():
@@ -243,17 +247,17 @@ if __name__ == '__main__':
     args = parse_args()
 
     print('.... crop and resample volumes ....')
-    cropAndResampleVolumes(args.input_dir_imgs, args.input_dir_GT, args.output_dir, augmentation=False)
+    cropAndResampleVolumes(args.input_dir_imgs, args.input_dir_GT, args.output_dir)
 
     print('.... split images to folds ....')
-    utils.makeDirectory(os.path.join(args.output_dir, 'Folds'))
+    utils.makeDirectory(os.path.join(args.output_dir, 'folds'))
     generateFolds(os.path.join(args.output_dir, 'preprocessed_imgs'),
-                  os.path.join(args.output_dir, 'Folds'), args.nr_folds)
+                  os.path.join(args.output_dir, 'folds'), args.nr_folds)
 
     print('.... generate fold arrays ....')
     utils.makeDirectory(os.path.join(args.output_dir, 'arrays'))
 
     # function for fold array generation is only used for validation arrays
     createAnisotropicFoldArrays(os.path.join(args.output_dir, 'preprocessed_imgs'),
-                                os.path.join(args.output_dir, 'preprocessed_Folds'),
+                                os.path.join(args.output_dir, 'folds'),
                                 os.path.join(args.output_dir, 'arrays'), nr_folds = args.nr_folds)

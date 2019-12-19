@@ -1,3 +1,5 @@
+__author__ = 'ameyer'
+
 import keras
 import numpy as np
 import dataAugmentation
@@ -7,7 +9,7 @@ import utils
 class DataGenerator(keras.utils.Sequence):
 
     def __init__(self, list_IDs, batch_size=2, n_planes=3,
-                 shuffle=True, data_dir='/data/anneke/prostate-data/ProstateX/preprocessed/train/',
+                 shuffle=True, data_dir='',
                  volumeSize_slices=38):
         'Initialization'
         self.batch_size = batch_size
@@ -38,10 +40,10 @@ class DataGenerator(keras.utils.Sequence):
         # Generate data
         for i, ID in enumerate(list_IDs_temp):
             # load sample
-            roi_tra = sitk.ReadImage(self.data_dir + ID + '/roi_tra.nrrd')
-            roi_cor = sitk.ReadImage(self.data_dir + ID + '/roi_cor.nrrd')
-            roi_sag = sitk.ReadImage(self.data_dir + ID + '/roi_sag.nrrd')
-            roi_GT = sitk.ReadImage(self.data_dir + ID + '/roi_GT.nrrd')
+            roi_tra = sitk.ReadImage(self.data_dir + '/' + ID + '/roi_tra.nrrd')
+            roi_cor = sitk.ReadImage(self.data_dir + '/' + ID + '/roi_cor.nrrd')
+            roi_sag = sitk.ReadImage(self.data_dir + '/' + ID + '/roi_sag.nrrd')
+            roi_GT = sitk.ReadImage(self.data_dir + '/' + ID + '/roi_GT.nrrd')
 
             # augment sample
             augm_tra, augm_sag, augm_cor, augm_GT = dataAugmentation.augmentImages(roi_tra, roi_sag, roi_cor, roi_GT)
@@ -63,10 +65,6 @@ class DataGenerator(keras.utils.Sequence):
             X_sag[i, :, :, :, 0] = sitk.GetArrayFromImage(augm_sag)
             Y[i, :, :, :, 0] = sitk.GetArrayFromImage(augm_GT)
 
-        # sitk.WriteImage(augm_tra, 'augm_tra.nrrd')
-        # sitk.WriteImage(augm_cor, 'augm_cor.nrrd')
-        # sitk.WriteImage(augm_sag, 'augm_sag.nrrd')
-        # sitk.WriteImage(augm_GT, 'augm_GT.nrrd')
 
         return [X_tra, X_cor,X_sag] , [Y]
 

@@ -1,3 +1,5 @@
+__author__ = 'ameyer'
+
 from keras.optimizers import Adam
 from keras import backend as K
 from keras.models import Model
