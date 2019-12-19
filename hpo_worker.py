@@ -18,8 +18,8 @@ def _parse_args():
                       help='A unique run id for this optimization run (default:  %(default)s)')
   parser.add_argument('--gpu', type=str, default="0",
                       help='GPU to be used')
-  parser.add_argument('--data-dir', type=str, default="/data/anneke/prostate-data/preprocessed/train/")
-  parser.add_argument('--array-dir', type=str, default="/data/anneke/prostate-data/whole-prostate-arrays/")
+  parser.add_argument('--data-dir', type=str, default="")
+  parser.add_argument('--array-dir', type=str, default="")
   return parser.parse_args()
 
 

@@ -153,7 +153,6 @@ def augmentImages(img_tra, img_sag, img_cor, img_GT):
 
 
 
-    #out_dir = '/data/anneke/data_augmented/' # = outputDirectory
     #nr_augm = nr_augmentations
 
     ### define reference volume for augmentation ###

@@ -42,7 +42,6 @@ class KerasWorker(Worker):
     :param kwargs: Additional model/training hyperparameters.
     :return: Validation loss of the best validation.
     """
-    # TODO Anneke: load images (should load exactly the same data across train calls)
 
 
     # load validation data
