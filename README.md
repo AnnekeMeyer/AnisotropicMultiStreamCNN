@@ -48,7 +48,7 @@ We assume the following data structure for the preprocessing. Deviations from th
 		- tra.nrrd
 		- sag.nrrd
 		- cor.nrrd
-	-Case3
+	- Case3
 		- ....
 	- ...
 GT
