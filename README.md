@@ -51,7 +51,7 @@ We assume the following data structure for the preprocessing. Deviations from th
 	- Case3
 		- ....
 		- ...
-GT
+- GT
 	- Case1
 		- prostate_smooth_label.nrrd
 	- Case2
