@@ -5,6 +5,12 @@ Source code of the paper "Anisotropic 3D Multi-Stream CNN for Accurate Prostate 
 
 ![Network](Network.PNG)
 
+## Data
+
+The segmentations for the PROSTATEx challenge that were created during this research, can be found at TCIA.Please make sure to cite the dataset when using it in your research:
+
+Schindele, D., Meyer, A., Von Reibnitz, D. F., Kiesswetter, V., Schostak, M., Rak, M., & Hansen, C. (2020). High Resolution Prostate Segmentations for the ProstateX-Challenge (Prostate-X-Challenge) [Data set]. The Cancer Imaging Archive. https://doi.org/10.7937/TCIA.2019.DEG7ZG1U
+
 ## Setup
 ```
 pip install -r requirements.txt
