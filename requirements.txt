@@ -6,5 +6,5 @@ pandas
 scipy
 tqdm
 pytest
-bokeh==1.0.4
+bokeh==3.8.2
 scikit-learn
